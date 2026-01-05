@@ -1,21 +1,21 @@
 {
-  "name": "Controle de Comandas – Mercatto Delícia",
+  "name": "Controle de Comandas – Delícia Gourmet",
   "short_name": "Comandas",
-  "start_url": "/CONTAGEM-DE-COMANDAS-MERCATTO/",
-  "scope": "/CONTAGEM-DE-COMANDAS-MERCATTO/",
+  "start_url": "/CONTAGEM-DE-COMANDAS-DELICIA/",
+  "scope": "/CONTAGEM-DE-COMANDAS-DELICIA/",
   "display": "standalone",
   "background_color": "#2563eb",
   "theme_color": "#2563eb",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/CONTAGEM-DE-COMANDAS-MERCATTO/icons/icon-192.png",
+      "src": "/CONTAGEM-DE-COMANDAS-DELICIA/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/CONTAGEM-DE-COMANDAS-MERCATTO/icons/icon-512.png",
+      "src": "/CONTAGEM-DE-COMANDAS-DELICIA/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
