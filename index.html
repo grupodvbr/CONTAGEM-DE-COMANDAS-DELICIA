@@ -374,8 +374,14 @@ function ativarCamera(){
 
 async function onScan(code){
   if(lock) return;
-  const c=code.trim();
+
+  let c = code.trim();
+
+  // 👉 COMPLETA COM ZEROS À ESQUERDA
+  c = c.padStart(4, "0");
+
   if(!REGEX.test(c)) return;
+
 
   lock=true;
   output.innerText="Verificando…";
@@ -490,18 +496,21 @@ window.onload=()=>{
 document.addEventListener("keydown", async (e) => {
   if(!modoLeitor) return;
 
-  // Leitor envia ENTER no final
   if(e.key === "Enter"){
-    const codigo = bufferLeitor;
-    bufferLeitor = "";
+  let codigo = bufferLeitor;
+  bufferLeitor = "";
 
-    if(REGEX.test(codigo)){
-      await onScan(codigo);
-    } else {
-      output.innerText = "❌ Código inválido";
-    }
-    return;
+  // 👉 COMPLETA COM ZEROS À ESQUERDA
+  codigo = codigo.padStart(4, "0");
+
+  if(REGEX.test(codigo)){
+    await onScan(codigo);
+  } else {
+    output.innerText = "❌ Código inválido";
   }
+  return;
+}
+
 
   // Aceita apenas números
   if(e.key >= "0" && e.key <= "9"){
