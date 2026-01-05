@@ -351,18 +351,34 @@ async function onScan(code){
   lock=true;
   output.innerText="Verificando…";
 
-  const {data}=await sb.from("comandas_delicia").select("id").eq("codigo",c).limit(1);
+  // 🔹 início e fim do dia selecionado
+  const iso = dataFiltro.value;
+  const inicioDia = new Date(iso + "T00:00:00");
+  const fimDia    = new Date(iso + "T23:59:59");
+
+  // 🔍 verifica SOMENTE no mesmo dia
+  const { data=[] } = await sb
+    .from("comandas_delicia")
+    .select("id")
+    .eq("codigo", c)
+    .gte("created_at", inicioDia.toISOString())
+    .lte("created_at", fimDia.toISOString())
+    .limit(1);
+
   if(data.length){
-    output.innerText=`⚠️ Já registrada: ${c}`;
+    output.innerText=`⚠️ Já registrada HOJE: ${c}`;
     lock=false;
     return;
   }
 
-  await sb.from("comandas_delicia").insert({codigo:c});
+  // ✅ registra normalmente
+  await sb.from("comandas_delicia").insert({ codigo: c });
+
   output.innerText=`✅ Registrada: ${c}`;
   lock=false;
   carregar();
 }
+
 
 /* DADOS */
 async function carregar(){
