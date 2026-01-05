@@ -310,7 +310,7 @@ busca.addEventListener("input",async()=>{
   if(!REGEX.test(v)) return;
 
   const {data=[]}=await sb
-    .from("comandas")
+    .from("comandas_delicia")
     .select("created_at")
     .eq("codigo",v)
     .order("created_at",{ascending:false});
@@ -351,14 +351,14 @@ async function onScan(code){
   lock=true;
   output.innerText="Verificando…";
 
-  const {data}=await sb.from("comandas").select("id").eq("codigo",c).limit(1);
+  const {data}=await sb.from("comandas_delicia").select("id").eq("codigo",c).limit(1);
   if(data.length){
     output.innerText=`⚠️ Já registrada: ${c}`;
     lock=false;
     return;
   }
 
-  await sb.from("comandas").insert({codigo:c});
+  await sb.from("comandas_delicia").insert({codigo:c});
   output.innerText=`✅ Registrada: ${c}`;
   lock=false;
   carregar();
@@ -370,7 +370,7 @@ async function carregar(){
   const [y,m,d]=iso.split("-");
   const br=`${d}/${m}/${y}`;
 
-  const {data=[]}=await sb.from("comandas").select("id,codigo,created_at").order("created_at",{ascending:false});
+  const {data=[]}=await sb.from("comandas_delicia").select("id,codigo,created_at").order("created_at",{ascending:false});
   let porData={};
   data.forEach(r=>{
     if(!REGEX.test(r.codigo)) return;
@@ -415,12 +415,12 @@ function fecharModalEditar(){modalEditar.style.display="none"}
 async function salvarEdicao(){
   const v=editarCodigo.value.trim();
   if(!REGEX.test(v)) return;
-  await sb.from("comandas").update({codigo:v}).eq("id",idSelecionado);
+  await sb.from("comandas_delicia").update({codigo:v}).eq("id",idSelecionado);
   fecharModalEditar(); carregar();
 }
 async function excluirComanda(){
   if(!confirm("Tem certeza que deseja excluir esta comanda?")) return;
-  await sb.from("comandas").delete().eq("id",idSelecionado);
+  await sb.from("comandas_delicia").delete().eq("id",idSelecionado);
   fecharModalEditar(); carregar();
 }
 
