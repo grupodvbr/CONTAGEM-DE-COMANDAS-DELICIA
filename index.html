@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Conferência de Comandas</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="manifest" href="/CONTAGEM-DE-COMANDAS-MERCATTO/manifest.json">
+<link rel="apple-touch-icon" href="/CONTAGEM-DE-COMANDAS-MERCATTO/icons/icon-192.png">
+
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-title" content="Comandas">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --warning:#f59e0b;
+  --bg:#f8fafc;
+  --text:#0f172a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:16px;
+  font-family:Inter,system-ui,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.dashboard{
+  max-width:820px;
+  margin:auto;
+  padding:20px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--primary),#3b82f6);
+  color:#fff;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+}
+.card{
+  background:rgba(255,255,255,.18);
+  border-radius:14px;
+  padding:14px;
+}
+.card strong{font-size:2rem}
+.ok{background:rgba(22,163,74,.9)}
+.alert{background:rgba(220,38,38,.9)}
+.info{background:rgba(245,158,11,.9)}
+
+.container{max-width:820px;margin:20px auto}
+
+input.search{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #ddd;
+  margin-bottom:10px;
+  text-align:center;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-size:15px;
+  color:#fff;
+  margin-bottom:10px;
+}
+.primary{background:var(--primary)}
+.warning{background:var(--warning)}
+.success{background:var(--success)}
+.danger{background:var(--danger)}
+
+#reader{max-width:340px;margin:16px auto;display:none}
+#output{
+  background:#fff;
+  padding:14px;
+  border-radius:14px;
+  font-weight:600;
+  margin-bottom:14px;
+  text-align:center;
+}
+
+table{
+  width:100%;
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+}
+th{background:var(--primary);color:#fff;padding:12px}
+td{
+  padding:12px;
+  border-bottom:1px solid #eee;
+  text-align:center;
+  cursor:pointer;
+}
+
+/* MODAIS */
+/* OVERLAY */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.65);
+  backdrop-filter:blur(3px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+/* CARD */
+.modal-content{
+  background:#ffffff;
+  width:92%;
+  max-width:420px;
+  border-radius:18px;
+  padding:0;
+  max-height:80vh;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+
+/* CABEÇALHO */
+.modal-content h3{
+  margin:0;
+  padding:16px;
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:#fff;
+  font-size:16px;
+  text-align:center;
+}
+
+/* LISTA */
+.modal-list{
+  padding:8px 0;
+  overflow-y:auto;
+  flex:1;
+}
+
+.modal-list div{
+  padding:14px;
+  text-align:center;
+  font-weight:600;
+  font-size:15px;
+  color:#0f172a;
+  border-bottom:1px solid #f1f5f9;
+}
+
+/* ÚLTIMO ITEM SEM BORDA */
+.modal-list div:last-child{
+  border-bottom:none;
+}
+
+/* BOTÃO FECHAR */
+.modal-content button{
+  margin:12px;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:#dc2626;
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+}
+
+/* SCROLL ELEGANTE */
+.modal-list::-webkit-scrollbar{
+  width:6px;
+}
+.modal-list::-webkit-scrollbar-thumb{
+  background:#c7d2fe;
+  border-radius:6px;
+}
+
+.modal-content input{
+  width:100%;
+  padding:12px;
+  font-size:20px;
+  text-align:center;
+  margin-bottom:10px;
+}
+
+/* REMOVE FOCUS / ACTIVE FEIO DOS BOTÕES */
+button,
+button:focus,
+button:active,
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* REMOVE HIGHLIGHT AZUL DO MOBILE */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* GARANTE QUE O BOTÃO NÃO "VAZE" DO CARD */
+.modal-content button {
+  width: 100%;
+  border-radius: 14px;
+}
+
+/* PREVINE SCROLL / SELEÇÃO ESTRANHA */
+button::-moz-focus-inner {
+  border: 0;
+}
+button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37,99,235,.35);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+  <h2>📊 Conferência de Comandas</h2>
+  <div class="grid">
+    <div class="card">
+      <span>Data</span>
+      <input type="date" id="dataFiltro">
+    </div>
+    <div class="card">
+      <span>Comandas do dia</span>
+      <strong id="qtdDia">0</strong>
+    </div>
+    <div class="card">
+      <span>Última contagem</span>
+      <strong id="qtdAnterior">0</strong>
+    </div>
+    <div class="card info" id="statusCard" onclick="abrirModalFaltantes()">
+      <span>Status</span>
+      <strong id="statusTexto">—</strong>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <input class="search" id="busca" placeholder="Buscar comanda (4 dígitos)">
+
+  <button class="primary" id="btnAbrir" onclick="startScanner()">📷 Iniciar Leitura</button>
+  <button class="warning" id="btnFechar" onclick="stopScanner()" style="display:none">❌ Fechar Câmera</button>
+
+  <div id="reader"></div>
+  <div id="output">Aguardando leitura…</div>
+
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Comanda</th></tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+</div>
+
+<!-- MODAIS -->
+<div class="modal" id="modalFaltantes">
+  <div class="modal-content">
+    <h3>📋 Comandas Faltantes</h3>
+    <div class="modal-list" id="faltantesLista"></div>
+    <button class="danger" onclick="fecharModalFaltantes()">Fechar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalEditar">
+  <div class="modal-content">
+    <h3>✏️ Editar Comanda</h3>
+    <input id="editarCodigo" maxlength="4">
+    <button class="success" onclick="salvarEdicao()">Salvar</button>
+    <button class="danger" onclick="excluirComanda()">Excluir</button>
+    <button onclick="fecharModalEditar()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalHistorico">
+  <div class="modal-content">
+    <h3>📅 Histórico da Comanda</h3>
+    <div class="modal-list" id="historicoLista"></div>
+    <button class="danger" onclick="fecharHistorico()">Fechar</button>
+  </div>
+</div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+const REGEX=/^\d{4}$/;
+let scanner=null, cameraAtiva=false, lock=false, faltantesGlobais=[], idSelecionado=null;
+
+/* BUSCA */
+busca.addEventListener("input",async()=>{
+  const v=busca.value.trim();
+  if(!REGEX.test(v)) return;
+
+  const {data=[]}=await sb
+    .from("comandas")
+    .select("created_at")
+    .eq("codigo",v)
+    .order("created_at",{ascending:false});
+
+  if(!data.length) return;
+
+  historicoLista.innerHTML="";
+  data.forEach(r=>{
+    historicoLista.innerHTML+=`<div>${new Date(r.created_at).toLocaleString("pt-BR")}</div>`;
+  });
+  modalHistorico.style.display="flex";
+});
+function fecharHistorico(){modalHistorico.style.display="none"}
+
+/* CAMERA */
+function atualizarBotoesCamera(){
+  btnAbrir.style.display=cameraAtiva?"none":"block";
+  btnFechar.style.display=cameraAtiva?"block":"none";
+  reader.style.display=cameraAtiva?"block":"none";
+}
+function startScanner(){
+  if(cameraAtiva) return;
+  scanner=new Html5Qrcode("reader");
+  scanner.start({facingMode:"environment"},{fps:20,qrbox:260},onScan);
+  cameraAtiva=true; atualizarBotoesCamera();
+}
+function stopScanner(){
+  scanner.stop().then(()=>{
+    scanner.clear(); scanner=null; cameraAtiva=false; atualizarBotoesCamera();
+  });
+}
+
+async function onScan(code){
+  if(lock) return;
+  const c=code.trim();
+  if(!REGEX.test(c)) return;
+
+  lock=true;
+  output.innerText="Verificando…";
+
+  const {data}=await sb.from("comandas").select("id").eq("codigo",c).limit(1);
+  if(data.length){
+    output.innerText=`⚠️ Já registrada: ${c}`;
+    lock=false;
+    return;
+  }
+
+  await sb.from("comandas").insert({codigo:c});
+  output.innerText=`✅ Registrada: ${c}`;
+  lock=false;
+  carregar();
+}
+
+/* DADOS */
+async function carregar(){
+  const iso=dataFiltro.value;
+  const [y,m,d]=iso.split("-");
+  const br=`${d}/${m}/${y}`;
+
+  const {data=[]}=await sb.from("comandas").select("id,codigo,created_at").order("created_at",{ascending:false});
+  let porData={};
+  data.forEach(r=>{
+    if(!REGEX.test(r.codigo)) return;
+    const d=new Date(r.created_at).toLocaleDateString("pt-BR");
+    porData[d]=(porData[d]||[]).concat(r);
+  });
+
+  const atual=porData[br]||[];
+  const anteriores=Object.keys(porData).filter(x=>x!==br).sort();
+  const ultima=anteriores.pop();
+  const anterior=ultima?porData[ultima]:[];
+
+  faltantesGlobais=anterior.map(x=>x.codigo).filter(c=>!atual.map(a=>a.codigo).includes(c));
+
+  qtdDia.innerText=atual.length;
+  qtdAnterior.innerText=anterior.length;
+
+  statusTexto.innerText=
+    !anterior.length?"Sem base":
+    atual.length===anterior.length?"✔ OK":
+    `Faltam ${faltantesGlobais.length}`;
+
+  statusCard.className="card "+(!anterior.length?"info":atual.length===anterior.length?"ok":"alert");
+
+  lista.innerHTML="";
+  atual.forEach(r=>{
+    lista.innerHTML+=`
+      <tr ondblclick="abrirModalEditar('${r.id}','${r.codigo}')">
+        <td>${br}</td>
+        <td>${r.codigo}</td>
+      </tr>`;
+  });
+}
+
+/* EDITAR */
+function abrirModalEditar(id,cod){
+  idSelecionado=id;
+  editarCodigo.value=cod;
+  modalEditar.style.display="flex";
+}
+function fecharModalEditar(){modalEditar.style.display="none"}
+async function salvarEdicao(){
+  const v=editarCodigo.value.trim();
+  if(!REGEX.test(v)) return;
+  await sb.from("comandas").update({codigo:v}).eq("id",idSelecionado);
+  fecharModalEditar(); carregar();
+}
+async function excluirComanda(){
+  if(!confirm("Tem certeza que deseja excluir esta comanda?")) return;
+  await sb.from("comandas").delete().eq("id",idSelecionado);
+  fecharModalEditar(); carregar();
+}
+
+/* FALTANTES */
+function abrirModalFaltantes(){
+  if(!faltantesGlobais.length) return;
+  faltantesLista.innerHTML="";
+  faltantesGlobais.forEach(c=>faltantesLista.innerHTML+=`<div>${c}</div>`);
+  modalFaltantes.style.display="flex";
+}
+function fecharModalFaltantes(){modalFaltantes.style.display="none"}
+
+window.onload=()=>{
+  dataFiltro.value=new Date().toISOString().split("T")[0];
+  dataFiltro.addEventListener("change",carregar);
+  carregar();
+};
+</script>
+
+</body>
+</html>
