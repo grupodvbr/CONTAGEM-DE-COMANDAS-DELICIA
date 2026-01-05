@@ -4,11 +4,11 @@ self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll([
-        "/CONTAGEM-DE-COMANDAS-MERCATTO/",
-        "/CONTAGEM-DE-COMANDAS-MERCATTO/index.html",
-        "/CONTAGEM-DE-COMANDAS-MERCATTO/manifest.json",
-        "/CONTAGEM-DE-COMANDAS-MERCATTO/icons/icon-192.png",
-        "/CONTAGEM-DE-COMANDAS-MERCATTO/icons/icon-512.png"
+        "/CONTAGEM-DE-COMANDAS-DELICIA/",
+        "/CONTAGEM-DE-COMANDAS-DELICIA/index.html",
+        "/CONTAGEM-DE-COMANDAS-DELICIA/manifest.json",
+        "/CONTAGEM-DE-COMANDAS-DELICIA/icons/icon-192.png",
+        "/CONTAGEM-DE-COMANDAS-DELICIA/icons/icon-512.png"
       ]);
     })
   );
