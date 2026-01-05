@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="/CONTAGEM-DE-COMANDAS-DELICIA/icons/icon-192.png">
 
 <meta name="theme-color" content="#2563eb">
-<meta name="apple-mobile-web-app-title" content="Comandas_delicia">
+<meta name="apple-mobile-web-app-title" content="Comandas">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -250,22 +250,25 @@ button:focus-visible {
 </div>
 
 <div class="container">
-
   <input class="search" id="busca" placeholder="Buscar comanda (4 dígitos)">
 
-  <button class="primary" id="btnAbrir" onclick="startScanner()">📷 Iniciar Leitura</button>
+<div class="grid" style="margin-bottom:10px">
+  <button class="primary" onclick="ativarLeitor()">⌨️ Usar Leitor</button>
+  <button class="primary" id="btnAbrir" onclick="ativarCamera()">📷 Usar Câmera</button>
   <button class="warning" id="btnFechar" onclick="stopScanner()" style="display:none">❌ Fechar Câmera</button>
-
-  <div id="reader"></div>
-  <div id="output">Aguardando leitura…</div>
-
-  <table>
-    <thead>
-      <tr><th>Data</th><th>Comanda</th></tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
 </div>
+
+<div id="reader"></div>
+<div id="output">Aguardando leitura…</div>
+
+<table>
+  <thead>
+    <tr><th>Data</th><th>Comanda</th></tr>
+  </thead>
+  <tbody id="lista"></tbody>
+</table>
+</div> <!-- 🔴 FECHA A CONTAINER AQUI -->
+
 
 <!-- MODAIS -->
 <div class="modal" id="modalFaltantes">
@@ -300,6 +303,9 @@ const sb = createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
+let modoLeitor = false;
+let bufferLeitor = "";
+let timeoutLeitor = null;
 
 const REGEX=/^\d{4}$/;
 let scanner=null, cameraAtiva=false, lock=false, faltantesGlobais=[], idSelecionado=null;
@@ -343,6 +349,29 @@ function stopScanner(){
   });
 }
 
+  
+function ativarLeitor(){
+  if(cameraAtiva) stopScanner();
+
+  modoLeitor = true;
+  bufferLeitor = "";
+
+  btnAbrir.style.display = "none";
+  btnFechar.style.display = "none";
+  reader.style.display = "none";
+  busca.style.display = "none";
+
+  output.innerText = "⌨️ Leitor ativo — passe as comandas";
+}
+
+function ativarCamera(){
+  modoLeitor = false;
+  busca.style.display = "block";
+  output.innerText = "📷 Câmera ativa";
+  startScanner();
+}
+
+
 async function onScan(code){
   if(lock) return;
   const c=code.trim();
@@ -358,7 +387,7 @@ async function onScan(code){
 
   // 🔍 verifica SOMENTE no mesmo dia
   const { data=[] } = await sb
-    .from("comandas_delicia")
+    .from(""comandas_delicia")
     .select("id")
     .eq("codigo", c)
     .gte("created_at", inicioDia.toISOString())
@@ -372,7 +401,7 @@ async function onScan(code){
   }
 
   // ✅ registra normalmente
-  await sb.from("comandas_delicia").insert({ codigo: c });
+  await sb.from(""comandas_delicia").insert({ codigo: c });
 
   output.innerText=`✅ Registrada: ${c}`;
   lock=false;
@@ -386,7 +415,7 @@ async function carregar(){
   const [y,m,d]=iso.split("-");
   const br=`${d}/${m}/${y}`;
 
-  const {data=[]}=await sb.from("comandas_delicia").select("id,codigo,created_at").order("created_at",{ascending:false});
+  const {data=[]}=await sb.from(""comandas_delicia").select("id,codigo,created_at").order("created_at",{ascending:false});
   let porData={};
   data.forEach(r=>{
     if(!REGEX.test(r.codigo)) return;
@@ -431,12 +460,12 @@ function fecharModalEditar(){modalEditar.style.display="none"}
 async function salvarEdicao(){
   const v=editarCodigo.value.trim();
   if(!REGEX.test(v)) return;
-  await sb.from("comandas_delicia").update({codigo:v}).eq("id",idSelecionado);
+  await sb.from(""comandas_delicia").update({codigo:v}).eq("id",idSelecionado);
   fecharModalEditar(); carregar();
 }
 async function excluirComanda(){
   if(!confirm("Tem certeza que deseja excluir esta comanda?")) return;
-  await sb.from("comandas_delicia").delete().eq("id",idSelecionado);
+  await sb.from(""comandas_delicia").delete().eq("id",idSelecionado);
   fecharModalEditar(); carregar();
 }
 
@@ -454,6 +483,34 @@ window.onload=()=>{
   dataFiltro.addEventListener("change",carregar);
   carregar();
 };
+
+
+document.addEventListener("keydown", async (e) => {
+  if(!modoLeitor) return;
+
+  // Leitor envia ENTER no final
+  if(e.key === "Enter"){
+    const codigo = bufferLeitor;
+    bufferLeitor = "";
+
+    if(REGEX.test(codigo)){
+      await onScan(codigo);
+    } else {
+      output.innerText = "❌ Código inválido";
+    }
+    return;
+  }
+
+  // Aceita apenas números
+  if(e.key >= "0" && e.key <= "9"){
+    bufferLeitor += e.key;
+
+    // segurança: limpa se ficar parado
+    clearTimeout(timeoutLeitor);
+    timeoutLeitor = setTimeout(()=>bufferLeitor="",300);
+  }
+});
+
 </script>
 
 </body>
