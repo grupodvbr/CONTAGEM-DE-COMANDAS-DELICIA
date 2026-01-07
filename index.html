@@ -415,13 +415,24 @@ async function onScan(code){
     return;
   }
 
-  // ✅ registra normalmente
-  await sb.from("comandas_delicia").insert({ codigo: c });
+ const { error } = await sb
+  .from("comandas_delicia")
+  .insert({ codigo: c });
 
-  output.innerText=`✅ Registrada: ${c}`;
-  lock=false;
-  carregar();
+if (error) {
+  if (error.code === "23505") {
+    output.innerText = `⚠️ Já registrada HOJE: ${c}`;
+  } else {
+    output.innerText = "❌ Erro ao registrar";
+    console.error(error);
+  }
+  lock = false;
+  return;
 }
+
+output.innerText = `✅ Registrada: ${c}`;
+lock = false;
+carregar();
 
 
 /* DADOS */
