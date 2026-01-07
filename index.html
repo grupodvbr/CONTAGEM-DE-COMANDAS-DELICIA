@@ -433,10 +433,12 @@ if (error) {
 output.innerText = `✅ Registrada: ${c}`;
 lock = false;
 carregar();
+} // 🔴 FECHA onScan AQUI
 
 
 /* DADOS */
 async function carregar(){
+
   const iso=dataFiltro.value;
   const [y,m,d]=iso.split("-");
   const br=`${d}/${m}/${y}`;
