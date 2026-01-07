@@ -303,6 +303,11 @@ const sb = createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
+
+let ultimoCodigo = null;
+let ultimoTempo = 0;
+const BLOQUEIO_MS = 1200;
+
 let modoLeitor = false;
 let bufferLeitor = "";
 let timeoutLeitor = null;
@@ -371,20 +376,24 @@ function ativarCamera(){
   startScanner();
 }
 
-
 async function onScan(code){
+  const agora = Date.now();
+  let c = code.trim().padStart(4, "0");
+
+  // 🔒 BLOQUEIO DEFINITIVO DE DUPLICAÇÃO
+  if (c === ultimoCodigo && (agora - ultimoTempo) < BLOQUEIO_MS) {
+    return;
+  }
+
+  ultimoCodigo = c;
+  ultimoTempo = agora;
+
   if(lock) return;
-
-  let c = code.trim();
-
-  // 👉 COMPLETA COM ZEROS À ESQUERDA
-  c = c.padStart(4, "0");
-
   if(!REGEX.test(c)) return;
 
+  lock = true;
+  output.innerText = "Verificando…";
 
-  lock=true;
-  output.innerText="Verificando…";
 
   // 🔹 início e fim do dia selecionado
   const iso = dataFiltro.value;
