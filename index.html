@@ -395,19 +395,15 @@ async function onScan(code){
   output.innerText = "Verificando…";
 
 
-  // 🔹 início e fim do dia selecionado
-  const iso = dataFiltro.value;
-  const inicioDia = new Date(iso + "T00:00:00");
-  const fimDia    = new Date(iso + "T23:59:59");
+ const diaSelecionado = dataFiltro.value; // YYYY-MM-DD
 
-  // 🔍 verifica SOMENTE no mesmo dia
-  const { data=[] } = await sb
-    .from("comandas_delicia")
-    .select("id")
-    .eq("codigo", c)
-    .gte("created_at", inicioDia.toISOString())
-    .lte("created_at", fimDia.toISOString())
-    .limit(1);
+const { data=[] } = await sb
+  .from("comandas_delicia")
+  .select("id")
+  .eq("codigo", c)
+  .eq("dia", diaSelecionado)
+  .limit(1);
+
 
   if(data.length){
     output.innerText=`⚠️ Já registrada HOJE: ${c}`;
