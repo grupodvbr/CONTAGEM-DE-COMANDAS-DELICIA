@@ -320,11 +320,12 @@ busca.addEventListener("input",async()=>{
   const v=busca.value.trim();
   if(!REGEX.test(v)) return;
 
-  const {data=[]}=await sb
-    .from("comandas_delicia")
-    .select("created_at")
-    .eq("codigo",v)
-    .order("created_at",{ascending:false});
+const { data = [] } = await sb
+  .from("comandas_delicia")
+  .select("id,codigo,created_at,dia")
+  .eq("dia", dataFiltro.value)
+  .order("created_at", { ascending: false });
+
 
   if(!data.length) return;
 
@@ -439,7 +440,11 @@ async function carregar(){
   const [y,m,d]=iso.split("-");
   const br=`${d}/${m}/${y}`;
 
-  const {data=[]}=await sb.from("comandas_delicia").select("id,codigo,created_at").order("created_at",{ascending:false});
+const { data = [] } = await sb
+  .from("comandas_delicia")
+  .select("id,codigo,created_at,dia")
+  .order("created_at", { ascending: false });
+
   let porData={};
   data.forEach(r=>{
     if(!REGEX.test(r.codigo)) return;
@@ -504,11 +509,18 @@ function abrirModalFaltantes(){
 }
 function fecharModalFaltantes(){modalFaltantes.style.display="none"}
 
-window.onload=()=>{
-  dataFiltro.value=new Date().toISOString().split("T")[0];
-  dataFiltro.addEventListener("change",carregar);
+window.onload = () => {
+  const hojeLocal = new Date();
+  hojeLocal.setMinutes(
+    hojeLocal.getMinutes() - hojeLocal.getTimezoneOffset()
+  );
+
+  dataFiltro.value = hojeLocal.toISOString().split("T")[0];
+  dataFiltro.addEventListener("change", carregar);
   carregar();
 };
+
+
 
 
 document.addEventListener("keydown", async (e) => {
