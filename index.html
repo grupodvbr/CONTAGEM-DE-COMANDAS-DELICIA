@@ -443,7 +443,7 @@ async function carregar(){
   let porData={};
   data.forEach(r=>{
     if(!REGEX.test(r.codigo)) return;
-    const d=new Date(r.created_at).toLocaleDateString("pt-BR");
+const d = r.dia.split("-").reverse().join("/");
     porData[d]=(porData[d]||[]).concat(r);
   });
 
